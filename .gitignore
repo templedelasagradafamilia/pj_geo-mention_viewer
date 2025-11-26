@@ -1,0 +1,30 @@
+# OS / Python
+.DS_Store
+__pycache__/
+*.pyc
+
+# エディタ
+.vscode/
+.idea/
+
+# 環境・秘密
+.env
+*.env
+.streamlit/secrets.toml
+
+# 認証関連（公開レポジトリでは原則除外）
+user_info.csv
+config.yaml
+
+# ログファイル
+*.log
+
+# 一時ファイル
+*.tmp
+*.temp
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# pytest
+.pytest_cache/
