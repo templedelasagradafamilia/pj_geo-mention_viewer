@@ -10,10 +10,23 @@ import pandas as pd
 import streamlit as st
 import yaml
 import streamlit_authenticator as stauth
+from collections.abc import Mapping
+
 
 # ======================================
 # 認証まわり（secrets.toml / config.yaml 読み込み）
 # ======================================
+
+def _secrets_to_dict(obj):
+    """
+    st.secrets のネストされたオブジェクトを
+    再帰的に通常の dict / 値に変換するヘルパー
+    """
+    if isinstance(obj, Mapping):
+        return {k: _secrets_to_dict(v) for k, v in obj.items()}
+    return obj
+
+
 def load_config(path: str = "config.yaml") -> dict:
     """認証設定を読み込む。
 
@@ -22,11 +35,10 @@ def load_config(path: str = "config.yaml") -> dict:
     """
     # 1) Streamlit secrets 優先
     try:
-        # Streamlit 実行時のみ st.secrets が利用可能
         if "credentials" in st.secrets and "cookie" in st.secrets:
             return {
-                "credentials": dict(st.secrets["credentials"]),
-                "cookie": dict(st.secrets["cookie"]),
+                "credentials": _secrets_to_dict(st.secrets["credentials"]),
+                "cookie": _secrets_to_dict(st.secrets["cookie"]),
             }
     except Exception:
         # secrets が使えない環境では YAML にフォールバック
@@ -46,6 +58,7 @@ def load_config(path: str = "config.yaml") -> dict:
     except Exception as e:
         st.error(f"config.yaml の読み込みでエラーが発生しました: {e}")
         st.stop()
+
 
 def create_authenticator(config: dict) -> stauth.Authenticate:
     """streamlit-authenticator のインスタンス生成"""
