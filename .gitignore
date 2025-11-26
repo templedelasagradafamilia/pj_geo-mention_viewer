@@ -28,3 +28,7 @@ config.yaml
 
 # pytest
 .pytest_cache/
+.streamlit/secrets.toml
+
+# 関係ないファイル
+create_yaml.py

@@ -11,22 +11,41 @@ import streamlit as st
 import yaml
 import streamlit_authenticator as stauth
 
-
 # ======================================
-# 認証まわり（config.yaml 読み込み）
+# 認証まわり（secrets.toml / config.yaml 読み込み）
 # ======================================
 def load_config(path: str = "config.yaml") -> dict:
-    """config.yaml を読み込む"""
+    """認証設定を読み込む。
+
+    1. .streamlit/secrets.toml の [credentials], [cookie] を優先して使用
+    2. 見つからなければ従来どおり config.yaml を読む
+    """
+    # 1) Streamlit secrets 優先
+    try:
+        # Streamlit 実行時のみ st.secrets が利用可能
+        if "credentials" in st.secrets and "cookie" in st.secrets:
+            return {
+                "credentials": dict(st.secrets["credentials"]),
+                "cookie": dict(st.secrets["cookie"]),
+            }
+    except Exception:
+        # secrets が使えない環境では YAML にフォールバック
+        pass
+
+    # 2) 従来どおり config.yaml を読む
     try:
         with open(path, "r", encoding="utf-8") as f:
             return yaml.safe_load(f)
     except FileNotFoundError:
-        st.error("config.yaml が見つかりません。リポジトリ直下に配置してください。")
+        st.error(
+            "認証設定が見つかりません。\n"
+            "Streamlit Cloud では .streamlit/secrets.toml に [credentials] と [cookie] を、"
+            "ローカルでは config.yaml を用意してください。"
+        )
         st.stop()
     except Exception as e:
         st.error(f"config.yaml の読み込みでエラーが発生しました: {e}")
         st.stop()
-
 
 def create_authenticator(config: dict) -> stauth.Authenticate:
     """streamlit-authenticator のインスタンス生成"""
